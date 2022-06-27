@@ -33,7 +33,7 @@ def create_data_lake():
     mkdir ('data_lake/business/features')
     mkdir ('data_lake/business/forecasts')
 
-    raise NotImplementedError("Implementar esta función")
+    #raise NotImplementedError("Implementar esta función")
 
 
 if __name__ == "__main__":

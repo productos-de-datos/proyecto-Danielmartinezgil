@@ -13,10 +13,19 @@ def ingest_data():
     descarga debe realizarse usando únicamente funciones de Python.
 
     """
-    raise NotImplementedError("Implementar esta función")
+    import wget, os
+
+    os.chdir('data_lake/landing')
+    for num in range(1995, 2021):
+        
+        wdir = 'https://github.com/jdvelasq/datalabs/tree/master/datasets/precio_bolsa_nacional/xls/xxxx-{}.xls'.format(num)
+        wget.download(wdir)
+
+
+    #raise NotImplementedError("Implementar esta función")
 
 
 if __name__ == "__main__":
     import doctest
-
+    ingest_data()
     doctest.testmod()

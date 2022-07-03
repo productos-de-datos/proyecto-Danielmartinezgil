@@ -3,6 +3,7 @@ De la carpeta raw, se toman todos los archivos .csv y se depositan en un solo ar
 se tienen todos los datos consolidados. 
 
 """
+import csv
 
 def clean_data():
     """Realice la limpieza y transformación de los archivos CSV.
@@ -22,31 +23,62 @@ def clean_data():
     import os
     import pandas as pd
 
-    data = os.listdir('data_lake/raw')
-    start_year = 1995
-    final_year = 2021
+    def read_files_to_clean(fpath_origin): 
+        cleaned_prices = pd.DataFrame()   
+        csv_files = get_csv_files(fpath_origin)
+        for filename in csv_files:
+            if filename.split('.')[-1] == 'csv':    
+                data_in_file = pd.read_csv(fpath_origin + filename, index_col=None, header=0)
+                cleaned_prices = pd.concat(objs=[cleaned_prices,data_in_file], axis=0, ignore_index=False)
+        return cleaned_prices
 
-    initial_file = pd.read_csv(f'data_lake/raw/{start_year}.csv')
+    def get_csv_files(fpath_origin):
+        csv_files = os.listdir(fpath_origin)
+        return csv_files
 
-    for item in range(start_year + 1, final_year + 1, 1):
-        if item == start_year + 1:
-            my_file = pd.read_csv(f'data_lake/raw/{item}.csv')
-            my_final_file = pd.concat([start_year, my_file], ignore_index = True)
-        else:
-            my_file = pd.read_csv(f'data_lake/raw/{item}.csv')
-            my_final_file = pd.concat([my_final_file, my_file], ignore_index = True)
+    def format_transform(cleaned_prices):
+        cleaned_prices['Fecha'] = cleaned_prices['Fecha'].apply(lambda x: str(x))
+        cleaned_prices['Fecha'] = cleaned_prices['Fecha'].apply(lambda x: x[:10])
+        cleaned_prices = cleaned_prices[cleaned_prices['Fecha'].notnull()]
+        return cleaned_prices
 
-    my_final_file.columns = ['fecha', '00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23']
+    def create_new_df():
+        df_cleaned_prices = pd.DataFrame()
+        df_cleaned_prices['Fecha']=None
+        df_cleaned_prices['Hora']=None
+        df_cleaned_prices['Precio']=None
 
-    joined_file = pd.melt(my_final_file, id_vars = ['fecha'], value_vars = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23'], var_name = 'hora', value_name = 'precio')
-    joined_file = joined_file.sort_values(by=['fecha', 'hora'])
-    joined_file = joined_file[joined_file['fecha'].notnull()]
+        df_cleaned_prices_aux = pd.DataFrame()
+        df_cleaned_prices_aux['Fecha']=None
+        df_cleaned_prices_aux['Hora']=None
+        df_cleaned_prices_aux['Precio']=None
 
-    joined_file.to_csv(f'data_lake/cleansed/precios-horarios.csv', header = True, index = False)
+        return df_cleaned_prices, df_cleaned_prices_aux
 
-    return 'Ok'
+    def create_cleaned_prices(cleaned_prices, df_cleaned_prices, df_cleaned_prices_aux):
+        for hora in range(0,24):
+            hora_str = str(hora)
+
+            df_cleaned_prices_aux['Fecha']=cleaned_prices['Fecha']
+            df_cleaned_prices_aux['Hora']=hora_str
+            df_cleaned_prices_aux['Precio']=cleaned_prices[hora_str]
+
+            df_cleaned_prices=pd.concat(objs=[df_cleaned_prices,df_cleaned_prices_aux], axis=0, ignore_index=False)
+        return df_cleaned_prices
+
+    def save_cleaned_prices(df_cleaned_prices, fpath_destiny):
+        df_cleaned_prices.to_csv(fpath_destiny + 'precios-horarios.csv', index=None)
+
+
+    fpath_origin ='./data_lake/raw/'
+    fpath_destiny = './data_lake/cleansed/'
+    cleaned_prices = read_files_to_clean(fpath_origin)
+    cleaned_prices = format_transform(cleaned_prices)
+    df_cleaned_prices, df_cleaned_prices_aux = create_new_df()
+    df_cleaned_prices = create_cleaned_prices(cleaned_prices, df_cleaned_prices, df_cleaned_prices_aux)
+    save_cleaned_prices(df_cleaned_prices, fpath_destiny)
 
 if __name__ == "__main__":
     import doctest
-    clean_data()
     doctest.testmod()
+    clean_data()

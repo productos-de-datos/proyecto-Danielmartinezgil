@@ -1,87 +1,49 @@
 """
-Módulo de Orquestación
+Módulo de pipeline.
 -------------------------------------------------------------------------------
-Orquesta la ejecución de las funciones previamente construídas mediante la 
-librería Luigi, con la cual se definen las clases con sus requerimientos y 
-salidas. Las clases definidas son: ingestar_data, transformar_data, 
-limpiar_data,computar_precio_diario y computar_precio_mensual
+En este módulo se elabora un Pipeline con luigi, con la finalidad de correr varios scripts en uno solo.
+Con este script se importan, transforman, limpian y calculan los promedios diarios y mensuales
+de los valores de la electricidad en la bolsa.
+>>> pipeline()
+"""
+
+"""
+Construya un pipeline de Luigi que:
+* Importe los datos xls
+* Transforme los datos xls a csv
+* Cree la tabla unica de precios horarios.
+* Calcule los precios promedios diarios
+* Calcule los precios promedios mensuales
+En luigi llame las funciones que ya creo.
 """
 import luigi
 from luigi import Task, LocalTarget
-class ingestar_data(Task):
+import ingest_data
+import transform_data
+import clean_data
+import compute_daily_prices
+import compute_monthly_prices
+
+class IngestTransformCleanData(Task):
     def output(self):
-        return LocalTarget('data_lake/landing/arc.csv')
-
+        return LocalTarget(f'data_lake/cleansed/precios-horarios.csv')
     def run(self):
+        ingest_data.ingest_data()
+        transform_data.transform_data()
+        clean_data.clean_data()
 
-        from ingest_data import ingest_data
-        with self.output().open('w') as archivos:
-            ingest_data()
-
-
-class transformar_data(Task):
+class ComputeDailyMonthly(Task):
     def requires(self):
-        return ingestar_data()
-
+        return IngestTransformCleanData()
     def output(self):
-        return LocalTarget('data_lake/raw/arc.txt')
-
+        return LocalTarget([f'data_lake/business/precios-diarios.csv', f'data_lake/business/precios-mensuales.csv'])
     def run(self):
+        compute_daily_prices.compute_daily_prices()
+        compute_monthly_prices.compute_monthly_prices()
 
-        from transform_data import transform_data
-        with self.output().open('w') as archivos:
-            transform_data()
+if __name__ == "__main__":
+    import doctest
 
+    doctest.testmod()
 
-class limpiar_data(Task):
-    def requires(self):
-        return transformar_data()
-
-    def output(self):
-        return LocalTarget('data_lake/cleansed/arc.txt')
-
-    def run(self):
-
-        from clean_data import clean_data
-        with self.output().open('w') as archivos:
-            clean_data()
-
-
-class computar_precio_diario(Task):
-    def requires(self):
-        return limpiar_data()
-
-    def output(self):
-        return LocalTarget('data_lake/business/arc.txt')
-
-    def run(self):
-
-        from compute_daily_prices import compute_daily_prices
-        with self.output().open('w') as archivos:
-            compute_daily_prices()
-
-
-class computar_precio_mensual(Task):
-    def requires(self):
-        return computar_precio_diario()
-
-    def output(self):
-        return LocalTarget('data_lake/business/arc.txt')
-
-    def run(self):
-
-        from compute_monthly_prices import compute_monthly_prices
-        with self.output().open('w') as archivos:
-            compute_monthly_prices()
-
-
-if __name__ == '__main__':
-    try:
-
-        import doctest
-        doctest.testmod()
-
-        luigi.run(["computar_precio_mensual", "--local-scheduler"])
-
-    except:
-        raise NotImplementedError("Implementar el orquestador de luigi")
+    luigi.run(['ComputeDailyMonthly', "--local-scheduler"])

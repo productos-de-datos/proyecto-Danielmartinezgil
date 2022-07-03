@@ -19,20 +19,25 @@ def ingest_data():
     import xlwt
     import openpyxl
 
-    def download_files(start_year, end_year, wdir, fpath):
-        for year_to_download in range (start_year, end_year):
-            try:
-                downloaded_file = pd.read_excel(wdir + '/' + str(year_to_download) + '.xlsx?raw=true')
-                downloaded_file.to_excel(fpath + str(year_to_download) + '.xlsx', index=None, header=True)
-            except:
-                downloaded_file = pd.read_excel(wdir + '/' + str(year_to_download) + '.xls?raw=true')
-                downloaded_file.to_excel(fpath + str(year_to_download) + '.xls', index=None, header=True)
+    try:
+        os.chdir("data_lake/landing/")
+        for num in range(1995, 2022):
+            if num in range(2016, 2018):
+                wdir = 'https://github.com/jdvelasq/datalabs/blob/master/datasets/precio_bolsa_nacional/xls/{}.xls?raw=true'.format(
+                    num)
+                wget.download(wdir)
+            else:
+                wdir = 'https://github.com/jdvelasq/datalabs/blob/master/datasets/precio_bolsa_nacional/xls/{}.xlsx?raw=true'.format(
+                    num)
+                wget.download(wdir)
+        os.chdir('../../')
+    except:
+        raise NotImplementedError("Implementar esta función")
 
-    fpath = 'data_lake/landing/'
-    start_year = 1995
-    end_year = 2022
-    wdir = 'https://github.com/jdvelasq/datalabs/blob/master/datasets/precio_bolsa_nacional/xls/'
-    download_files(start_year,end_year,wdir,fpath)
+
+def test_ruta_origen():
+    assert set(os.listdir()) - set(['.git', '.github', '.gitignore',
+                                    '.vscode', 'data_lake', 'grader.py', 'Makefile', 'README.md', 'src']) == set()
 
 
 

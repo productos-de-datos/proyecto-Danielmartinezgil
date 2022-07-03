@@ -62,7 +62,7 @@
     },
     {
       "name": "Test 07",
-      "setup": "pip3 install matplotlib sklearn pandas luigi pytest pylint openpyxl xlrd xlwt xlsxwriter nbformat",
+      "setup": "pip3 install matplotlib sklearn pandas openpyxl xlrd xlwt xlsxwriter luigi pytest pylint",
       "run": "python3 grader.py 07",
       "input": "",
       "output": "",

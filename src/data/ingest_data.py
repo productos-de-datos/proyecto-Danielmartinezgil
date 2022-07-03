@@ -14,19 +14,25 @@ def ingest_data():
     descarga debe realizarse usando únicamente funciones de Python.
 
     """
-    import requests
+    import os
+    import pandas as pd
+    import xlwt
+    import openpyxl
 
-    for num in range(1995, 2022):
-        if num in range(2016, 2018):
-            url = 'https://github.com/jdvelasq/datalabs/blob/master/datasets/precio_bolsa_nacional/xls/{}.xls?raw=true'.format(num)
-            file = requests.get(url, allow_redirects=True)
-            open('data_lake/landing/{}.xls'.format(num), 'wb').write(file.content)
-        else:
-            url = 'https://github.com/jdvelasq/datalabs/blob/master/datasets/precio_bolsa_nacional/xls/{}.xlsx?raw=true'.format(num)
-            file = requests.get(url, allow_redirects=True)
-            open('data_lake/landing/{}.xlsx'.format(num), 'wb').write(file.content)
-    return
-    raise NotImplementedError("Implementar esta función")
+    def download_files(start_year, end_year, wdir, fpath):
+        for year_to_download in range (start_year, end_year):
+            try:
+                downloaded_file = pd.read_excel(wdir + '/' + str(year_to_download) + '.xlsx?raw=true')
+                downloaded_file.to_excel(fpath + str(year_to_download) + '.xlsx', index=None, header=True)
+            except:
+                downloaded_file = pd.read_excel(wdir + '/' + str(year_to_download) + '.xls?raw=true')
+                downloaded_file.to_excel(fpath + str(year_to_download) + '.xls', index=None, header=True)
+
+    fpath = 'data_lake/landing/'
+    start_year = 1995
+    end_year = 2022
+    wdir = 'https://github.com/jdvelasq/datalabs/blob/master/datasets/precio_bolsa_nacional/xls/'
+    download_files(start_year,end_year,wdir,fpath)
 
 
 

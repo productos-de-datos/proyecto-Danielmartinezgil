@@ -1,3 +1,6 @@
+"""
+Gráfica de precios diarios
+"""
 def make_daily_prices_plot():
     """Crea un grafico de lines que representa los precios promedios diarios.
 

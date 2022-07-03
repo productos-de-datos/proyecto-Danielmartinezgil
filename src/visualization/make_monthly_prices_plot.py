@@ -1,3 +1,7 @@
+"""
+Gráfica de precios mensuales
+"""
+
 def make_monthly_prices_plot():
     """Crea un grafico de lines que representa los precios promedios diarios.
     Usando el archivo data_lake/business/precios-diarios.csv, crea un grafico de

@@ -1,3 +1,7 @@
+"""
+Entrenamiento del modelo
+"""
+
 import pandas as pd
 from pmdarima import auto_arima
 from statsmodels.tsa.statespace.sarimax import SARIMAX

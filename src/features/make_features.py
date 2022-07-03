@@ -16,10 +16,17 @@ def make_features():
 
     import shutil
 
-    shutil.copy('data_lake/business/precios-diarios.csv',
-                'data_lake/business/features/precios_diarios.csv')
+    import pandas as pd
+
+    data_in_file = pd.read_csv('data_lake/business/precios-diarios.csv', index_col=None, header=0)
+    data_in_file['Fecha'] = pd.to_datetime(data_in_file['Fecha'])
+    data_in_file.to_csv('data_lake/business/features/precios_diarios.csv', index=None)
+
+
 
 if __name__ == "__main__":
     import doctest
-
     doctest.testmod()
+
+if __name__ == "__main__":
+    make_features()

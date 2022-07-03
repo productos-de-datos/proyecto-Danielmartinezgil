@@ -10,20 +10,27 @@ def make_daily_prices_plot():
     #raise NotImplementedError("Implementar esta función")
     import pandas as pd
     import matplotlib.pyplot as plt
-    path_file = r'data_lake/business/precios-diarios.csv'
-    datos = pd.read_csv(path_file, index_col=None, sep=',', header=0)
-    datos["fecha"] = pd.to_datetime(datos["fecha"])
-    x = datos.fecha
-    y = datos.precio
 
-    plt.figure(figsize=(15, 6))
-    plt.plot(x, y, 'b', label='Promedio Diario')
-    plt.title('Promedio Diario')
-    plt.xlabel('Fecha')
-    plt.ylabel('Precio')
-    plt.legend()
-    plt.xticks(rotation="vertical")
-    plt.savefig("data_lake/business/reports/figures/daily_prices.png")
+    def obtain_axix_plotting():
+        daily_prices = pd.read_csv('data_lake/business/precios-diarios.csv', header=0)
+        daily_prices['Fecha'] = pd.to_datetime(daily_prices['Fecha'])
+        X = daily_prices['Fecha']
+        y = daily_prices['Precio']
+        return X, y
+
+    def plotting(X,y):    
+        plt.figure(figsize=(15, 6))
+        plt.plot(X, y, 'b', label='Prom. precio')
+        plt.title('Promedio de Precio Diario de Energía')
+        plt.xlabel('Fecha')
+        plt.ylabel('Precio')
+        plt.legend()
+        plt.xticks(rotation="vertical")
+        plt.savefig("data_lake/business/reports/figures/daily_prices.png")
+
+    X, y = obtain_axix_plotting()
+    plotting(X, y)
+
 
 if __name__ == "__main__":
     import doctest

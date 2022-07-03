@@ -30,6 +30,5 @@ def make_monthly_prices_plot():
 
 if __name__ == "__main__":
     import doctest
-
     doctest.testmod()
     make_monthly_prices_plot()

@@ -1,3 +1,9 @@
+"""
+En este modulos se crea el lago de datos, con sus diferentes subcarpetas, en donde podrán almacenarse
+todos los datos estructurados y no estructurados a cualquier escala. 
+
+"""
+
 def proyecto_principal():
     from pathlib import Path
     return Path(__file__).parent.parent.parent

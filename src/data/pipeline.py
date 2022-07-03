@@ -1,11 +1,8 @@
-"""
-Módulo de pipeline.
--------------------------------------------------------------------------------
-En este módulo se elabora un Pipeline con luigi, con la finalidad de correr varios scripts en uno solo.
-Con este script se importan, transforman, limpian y calculan los promedios diarios y mensuales
-de los valores de la electricidad en la bolsa.
->>> pipeline()
-"""
+'''
+Se llaman y ejecutan las funciones para la ingesta de datos, la transformación de los datos, la creación de las tablas únicas de precios
+horarios, los cálculos de precios promedios diarios y los cálculos de precios promedios mensuales, a través del encadenamiento
+de tareas de Luigi.
+'''
 
 """
 Construya un pipeline de Luigi que:
@@ -18,32 +15,74 @@ En luigi llame las funciones que ya creo.
 """
 import luigi
 from luigi import Task, LocalTarget
-import ingest_data
-import transform_data
-import clean_data
-import compute_daily_prices
-import compute_monthly_prices
 
-class IngestTransformCleanData(Task):
+class ingestdata(Task):
+
     def output(self):
-        return LocalTarget(f'data_lake/cleansed/precios-horarios.csv')
-    def run(self):
-        ingest_data.ingest_data()
-        transform_data.transform_data()
-        clean_data.clean_data()
+        return LocalTarget('data_lake/landing/arc.txt')
 
-class ComputeDailyMonthly(Task):
+    def run(self):
+        from ingest_data import ingest_data
+        with self.output().open("w") as outfile:
+            ingest_data()
+
+class transformdata(Task):
+
     def requires(self):
-        return IngestTransformCleanData()
+        return ingestdata()
+    
     def output(self):
-        return LocalTarget([f'data_lake/business/precios-diarios.csv', f'data_lake/business/precios-mensuales.csv'])
+        return LocalTarget('data_lake/raw/archivo.txt')
+
     def run(self):
-        compute_daily_prices.compute_daily_prices()
-        compute_monthly_prices.compute_monthly_prices()
+        from transform_data import transform_data
+        with self.output().open("w") as outfile:
+            transform_data()
+
+class cleandata(Task):
+    
+    def requires(self):
+        return transformdata()
+    
+    def output(self):
+        return LocalTarget('data_lake/cleansed/archivo.txt')
+
+    def run(self):
+        from clean_data import clean_data
+        with self.output().open("w") as outfile:
+            clean_data()
+
+class computedailyprices(Task):
+    
+    def requires(self):
+        return cleandata()
+    
+    def output(self):
+        return LocalTarget('data_lake/business/archivo.txt')
+
+    def run(self):
+        from compute_daily_prices import compute_daily_prices
+        with self.output().open("w") as outfile:
+            compute_daily_prices()
+
+class computemonthlyprices(Task):
+    
+    def requires(self):
+        return computedailyprices()
+    
+    def output(self):
+        return LocalTarget('data_lake/business/archivo1.txt')
+
+    def run(self):
+        from compute_monthly_prices import compute_monthly_prices
+        with self.output().open("w") as outfile:
+            compute_monthly_prices()
+
+if __name__ == "__main__":
+    luigi.run(["computemonthlyprices", "--local-scheduler"])
+    #raise NotImplementedError("Implementar esta función")
 
 if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
-
-    luigi.run(['ComputeDailyMonthly', "--local-scheduler"])
